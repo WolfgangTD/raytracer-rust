@@ -58,7 +58,7 @@ impl Ray {
         self._origin + self.dir.scalar(t)
     }
     fn ray_colour(self) -> Vector3 {
-        if sphere_collision(Vector3 { x: (-1.0), y: (0.0), z: (0.0) }, 0.5, &self){
+        if sphere_collision(Vector3 { x: (0.0), y: (0.0), z: (-1.0) }, 0.5, &self){
             return Vector3 {x:1.0, y:0.0, z:0.0};
         }
         let unit_direction = (self.dir).normalize();
@@ -70,10 +70,16 @@ impl Ray {
 fn sphere_collision(centre: Vector3, radius: f64, ray: &Ray ) -> bool {
     let oc = ray._origin - centre;
     let a = ray.dir._dot(&ray.dir);
-    let b = 2.0 * oc._dot(&ray.dir);
-    let c = oc._dot(&oc) - radius * radius;
-    let discriminant = b*b - 4.0*a*c;
-    return discriminant > 0.0;
+    let b = oc._dot(&ray.dir) * 2.0;
+    let c = oc._dot(&oc) - (radius * radius);
+    let discriminant = (b*b) -(4.0*a*c);
+    if discriminant > 0.0
+    {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 fn main() {
@@ -105,23 +111,19 @@ fn main() {
     let lower_left_corner = origin - horizontal.scalar(0.5) - vertical.scalar(0.5) - Vector3 { x: (0.0), y: (0.0), z: (focal_length) };
 
     println!("P3\n{image_width} {image_height}\n255\n");
-    let mut pixel_color;
-    let mut u;
-    let mut v;
-    let mut r;
     let mut j = image_height-1.0;
 
     while j as i32 >= 0 {
         eprintln!("\rScanlines remaining {j}");
         stdout().flush().unwrap();
         for i in 0..image_width as i32 {
-            u = i as f64 / (image_width-1.0) as f64; 
-            v = j as f64 /(image_height-1.0) as f64;
-            r = Ray {
+            let u = i as f64 / (image_width-1.0) as f64; 
+            let v = j as f64 /(image_height-1.0) as f64;
+            let r = Ray {
                 _origin: origin,
                 dir: lower_left_corner + horizontal.scalar(u) + vertical.scalar(v) - origin,
             };
-            pixel_color = r.ray_colour();
+            let pixel_color = r.ray_colour();
             
             pixel_color.write_colour();     
         }
